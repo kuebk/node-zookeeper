@@ -420,7 +420,9 @@ public:
 	} \
 	fprintf(stderr, "\n%p %p\n", watcherCtx, &watcherCtx); \
 	fprintf(stderr, "%c[%dm", 0x1B, 0); \
-        Persistent<Function> *callback = cb_unwrap((void*)watcherCtx); \
+        /*Persistent<Function> *callback = cb_unwrap((void*)watcherCtx);*/ \
+	Persistent<Function> *callback = reinterpret_cast<Persistent<Function>*>((void *)watcherCtx); \
+	if(!(*callback)->IsFunction()) { return; } \
         assert (callback); \
         Local<Value> lv_zk = (*callback)->GetHiddenValue(HIDDEN_PROP_ZK); \
         (*callback)->DeleteHiddenValue(HIDDEN_PROP_ZK); \
