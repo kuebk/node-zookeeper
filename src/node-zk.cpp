@@ -375,6 +375,8 @@ public:
 
 #define CALLBACK_PROLOG(args) \
         HandleScope scope; \
+	fprintf(stderr, "%c[%d;%d;%dmCALLBACK_PROLOG\n", 0x1B, 1, 31, 40); \
+	fprintf(stderr, "%c[%dm", 0x1B, 0); \
         Persistent<Function> *callback = cb_unwrap((void*)data); \
         assert (callback); \
         Local<Value> lv = (*callback)->GetHiddenValue(HIDDEN_PROP_ZK); \
@@ -409,8 +411,15 @@ public:
         return scope.Close(Int32::New(ret))
 
 #define WATCHER_PROLOG(args) \
-        if (zoo_state(zh) == ZOO_EXPIRED_SESSION_STATE) { return; } \
+        if (zoo_state(zh) == ZOO_EXPIRED_SESSION_STATE || watcherCtx == NULL) { return; } \
         HandleScope scope; \
+	fprintf(stderr, "%c[%d;%d;%dmWATCHER_PROLOG\n", 0x1B, 1, 31, 40); \
+	const char *p = reinterpret_cast<const char *>(watcherCtx); \
+	for(unsigned int i = 0; i < 5; i++) {\
+		fprintf(stderr, "%s ", &p[i]); \
+	} \
+	fprintf(stderr, "\n%p %p\n", watcherCtx, &watcherCtx); \
+	fprintf(stderr, "%c[%dm", 0x1B, 0); \
         Persistent<Function> *callback = cb_unwrap((void*)watcherCtx); \
         assert (callback); \
         Local<Value> lv_zk = (*callback)->GetHiddenValue(HIDDEN_PROP_ZK); \
@@ -449,6 +458,8 @@ public:
 */
 
     static void string_completion (int rc, const char *value, const void *data) {
+	fprintf(stderr, "%c[%d;%d;%dmSTRING_COMPLETION\n", 0x1B, 1, 31, 40);
+	fprintf(stderr, "%c[%dm", 0x1B, 0);
         if (value == 0) value="null";
         LOG_DEBUG(("rc=%d, rc_string=%s, path=%s, data=%lp", rc, zerror(rc), value, data));
         CALLBACK_PROLOG (3);
@@ -470,6 +481,8 @@ public:
     }
 
     static void void_completion (int rc, const void *data) {
+	fprintf(stderr, "%c[%d;%d;%dmVOID_COMPLETION\n", 0x1B, 1, 31, 40);
+	fprintf(stderr, "%c[%dm", 0x1B, 0);
         CALLBACK_PROLOG (2);
         LOG_DEBUG(("rc=%d, rc_string=%s", rc, zerror(rc)));
         CALLBACK_EPILOG();
@@ -501,6 +514,8 @@ public:
     }
 
     static void stat_completion (int rc, const struct Stat *stat, const void *data) {
+	fprintf(stderr, "%c[%d;%d;%dmSTAT_COMPLETION\n", 0x1B, 1, 31, 40);
+	fprintf(stderr, "%c[%dm", 0x1B, 0);
         CALLBACK_PROLOG (3);
         LOG_DEBUG(("rc=%d, rc_string=%s", rc, zerror(rc)));
         argv[2] = rc == ZOK ? zkk->createStatObject (stat) : Object::Cast(*Null());
@@ -522,6 +537,8 @@ public:
 
     static void data_completion (int rc, const char *value, int value_len,
                                  const struct Stat *stat, const void *data) {
+	fprintf(stderr, "%c[%d;%d;%dmDATA_COMPLETION\n", 0x1B, 1, 31, 40);
+	fprintf(stderr, "%c[%dm", 0x1B, 0);
         CALLBACK_PROLOG (4);
         LOG_DEBUG(("rc=%d, rc_string=%s, value=%s", rc, zerror(rc), value));
         argv[2] = stat != 0 ? zkk->createStatObject (stat) : Object::Cast(*Null());
@@ -573,6 +590,8 @@ public:
 
     static void strings_completion (int rc,
             const struct String_vector *strings, const void *data) {
+	fprintf(stderr, "%c[%d;%d;%dmSTRINGS_COMPLETION\n", 0x1B, 1, 31, 40);
+	fprintf(stderr, "%c[%dm", 0x1B, 0);
         CALLBACK_PROLOG (3);
         LOG_DEBUG(("rc=%d, rc_string=%s", rc, zerror(rc)));
         if (strings != NULL) {
@@ -602,6 +621,8 @@ public:
 
     static void strings_stat_completion (int rc, const struct String_vector *strings,
             const struct Stat *stat, const void *data) {
+	fprintf(stderr, "%c[%d;%d;%dmSTRINGS_STAT_COMPLETION\n", 0x1B, 1, 31, 40);
+	fprintf(stderr, "%c[%dm", 0x1B, 0);
         CALLBACK_PROLOG (4);
         LOG_DEBUG(("rc=%d, rc_string=%s", rc, zerror(rc)));
         if (strings != NULL) {
