@@ -411,7 +411,8 @@ public:
 #define WATCHER_PROLOG(args) \
         if (zoo_state(zh) == ZOO_EXPIRED_SESSION_STATE) { return; } \
         HandleScope scope; \
-        Persistent<Function> *callback = cb_unwrap((void*)watcherCtx); \
+        Persistent<Function> *callback = reinterpret_cast<Persistent<Function>*>((void *)watcherCtx); \
+        if(!(*callback)->IsFunction()) { return; } \
         assert (callback); \
         Local<Value> lv_zk = (*callback)->GetHiddenValue(HIDDEN_PROP_ZK); \
         (*callback)->DeleteHiddenValue(HIDDEN_PROP_ZK); \
