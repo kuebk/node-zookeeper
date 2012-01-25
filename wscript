@@ -48,11 +48,11 @@ def build(bld):
 
     obj = bld.new_task_gen("cxx", "shlib", "node_addon")
     if OSTYPE == 'Darwin':
-        obj.cxxflags = ["-Wall", "-Werror", '-DDEBUG', '-O0', '-mmacosx-version-min=10.4']
+        obj.cxxflags = ["-Wall", "-Werror", '-DDEBUG', '-O0', '-mmacosx-version-min=10.4', '-g']
         obj.ldflags = ['-mmacosx-version-min=10.4']
     else:
         # default build flags, add special cases if needed
-        obj.cxxflags = ["-Wall", "-Werror", '-DDEBUG', '-O0']
+        obj.cxxflags = ["-Wall", "-Werror", '-DDEBUG', '-O0', '-g']
         obj.ldflags = ['']
 
     obj.target = "zookeeper_native"
