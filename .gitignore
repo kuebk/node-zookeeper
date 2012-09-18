@@ -2,3 +2,5 @@ build
 node_modules
 npm-debug.log
 *.tgz
+*.swp
+.lock-wscript
