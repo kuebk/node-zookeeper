@@ -6,7 +6,8 @@ BUILD_TMP=$BUILD/tmp
 PLATFORM=`uname`
 ZK=zookeeper-3.4.3
 ZK_FILE=/$BUILD_TMP/$ZK.tar.gz
-ZK_URL=http://apache.mirrors.tds.net/zookeeper/$ZK/$ZK.tar.gz
+#ZK_URL=http://apache.mirrors.tds.net/zookeeper/$ZK/$ZK.tar.gz
+ZK_URL=http://mirror.olnevhost.net/pub/apache/zookeeper/$ZK/$ZK.tar.gz
 
 if [ "$PLATFORM" != "SunOS" ]; then
     mkdir -p $BUILD_TMP
