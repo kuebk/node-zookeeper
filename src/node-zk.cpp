@@ -201,6 +201,7 @@ public:
 
     void yield () {
         if (is_closed) {
+            LOG_DEBUG(("Connection has been closed earlier"));
             return;
         }
 
@@ -212,11 +213,12 @@ public:
 
         int rc = zookeeper_interest (zhandle, &fd, &interest, &tv);
         if (rc) {
-          LOG_ERROR(("yield:zookeeper_interest returned error: %d - %s\n", rc, zerror(rc)));
+          LOG_ERROR(("zookeeper_interest returned error: %d - %s\n", rc, zerror(rc)));
           return;
         }
 
         if (fd == -1 ) {
+          LOG_ERROR("zookeeper_interest returned wrong fd: %d", fd);
           if (ev_is_active (&zk_io)) {
             ev_io_stop (EV_DEFAULT_UC_ &zk_io);
 #if NODE_VERSION_AT_LEAST(0, 8, 0)
