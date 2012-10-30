@@ -226,11 +226,14 @@ public:
           return;
         }
 
+        ev_tstamp timeout = tv.tv_sec + tv.tv_usec / 1000000.;
+
         int events = (interest & ZOOKEEPER_READ ? EV_READ : 0) | (interest & ZOOKEEPER_WRITE ? EV_WRITE : 0);
-        LOG_DEBUG(("Interest in (fd=%i, read=%s, write=%s)",
+        LOG_DEBUG(("Interest in (fd=%i, read=%s, write=%s, timeout=%f)",
                    fd,
                    events & EV_READ ? "true" : "false",
-                   events & EV_WRITE ? "true" : "false"));
+                   events & EV_WRITE ? "true" : "false",
+                   timeout));
 
         if (ev_is_active (&zk_io)) {
           ev_io_stop (EV_DEFAULT_UC_ &zk_io);
@@ -242,11 +245,18 @@ public:
         ev_io_set (&zk_io, fd, events);
         ev_io_start(EV_DEFAULT_UC_ &zk_io);
 
+        //if zookeeper_interest returns tv=0. zk_timer cb won't
+        //get started so we need to modify timeout a bit
+        if (timeout <= 0.) {
+            timeout = 0.1;
+        }
+
+
 #if NODE_VERSION_AT_LEAST(0, 8, 0)
-        zk_timer.delay = tv.tv_sec + tv.tv_usec / 1000000.;
+        zk_timer.delay = timeout;
         ev_timer_start (EV_DEFAULT_UC_ &zk_timer);
 #else
-        zk_timer.repeat = tv.tv_sec + tv.tv_usec / 1000000.;
+        zk_timer.repeat = timeout;
         ev_timer_again (EV_DEFAULT_UC_ &zk_timer);
 #endif
     }
