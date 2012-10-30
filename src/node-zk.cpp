@@ -62,7 +62,6 @@ DEFINE_STRING (on_event_deleted,     "deleted");
 DEFINE_STRING (on_event_changed,     "changed");
 DEFINE_STRING (on_event_child,       "child");
 DEFINE_STRING (on_event_notwatching, "notwatching");
-DEFINE_STRING (on_timeout,           "timeout");
 
 #define DEFINE_SYMBOL(ev)   DEFINE_STRING(ev, #ev)
 DEFINE_SYMBOL (HIDDEN_PROP_ZK);
@@ -256,27 +255,11 @@ public:
         LOG_DEBUG(("zk_io_cb fired"));
         ZooKeeper *zk = static_cast<ZooKeeper*>(w->data);
         int events = (revents & EV_READ? ZOOKEEPER_READ : 0) | (revents & EV_WRITE? ZOOKEEPER_WRITE : 0);
-        if (ev_is_active (&zk->zk_read_timer)) {
-            ev_timer_stop(EV_DEFAULT_UC_ &zk->zk_read_timer);
-        }
         int rc = zookeeper_process (zk->zhandle, events);
         if (rc != ZOK) {
             LOG_ERROR(("yield:zookeeper_process returned error: %d - %s\n", rc, zerror(rc)));
         }
         zk->yield ();
-    }
-
-    static void zk_read_timer_cb(EV_P_ ev_timer *w, int revents) {
-        LOG_DEBUG(("read timeout"));
-#if NODE_VERSION_AT_LEAST(0, 8, 0)
-        ev_timer_start (EV_DEFAULT_UC_ w);
-#endif
-        ZooKeeper *zk = static_cast<ZooKeeper*>(w->data);
-        if (ev_is_active (&zk->zk_read_timer))
-            ev_timer_stop(EV_DEFAULT_UC_ &zk->zk_read_timer);
-        if (ev_is_active (&zk->zk_timer))
-            ev_timer_stop(EV_DEFAULT_UC_ &zk->zk_timer);
-        zk->DoEmit(on_timeout, v8::Undefined());
     }
 
     static void zk_timer_cb (EV_P_ ev_timer *w, int revents) {
@@ -297,13 +280,6 @@ public:
         if (timeout < now) {
             LOG_DEBUG(("ping timer went off"));
             // timeout occurred, take action
-#if NODE_VERSION_AT_LEAST(0, 8, 0)
-            zk_read_timer.delay = (zk->tv.tv_sec + zk->tv.tv_usec/1000000.);
-            ev_timer_start(EV_DEFAULT_UC_ &zk_read_timer);
-#else
-            zk->zk_read_timer.repeat = (zk->tv.tv_sec + zk->tv.tv_usec/1000000.); 
-            ev_timer_again(EV_DEFAULT_UC_ &zk->zk_read_timer);
-#endif
             zk->yield ();
         } else {
             // callback was invoked, but there was some activity, re-arm
@@ -331,10 +307,8 @@ public:
         Ref();
         ev_init (&zk_io, &zk_io_cb);
         ev_init (&zk_timer, &zk_timer_cb);
-        ev_init (&zk_read_timer, &zk_read_timer_cb);
-        zk_io.data = zk_timer.data = zk_read_timer.data = this;
+        zk_io.data = zk_timer.data = this;
         ev_set_priority (&zk_timer, 1);
-        ev_set_priority (&zk_read_timer, 1);
         yield ();
         return true;
     }
@@ -806,8 +780,6 @@ public:
         if (ev_is_active (&zk_timer))
             ev_timer_stop(EV_DEFAULT_UC_ &zk_timer);
 
-        if (ev_is_active (&zk_read_timer))
-            ev_timer_stop(EV_DEFAULT_UC_ &zk_read_timer);
         if (zhandle) {
             LOG_DEBUG(("call zookeeper_close(%lp)", zhandle));
             zookeeper_close(zhandle);
@@ -842,7 +814,6 @@ public:
         ZERO_MEM (myid);
         ZERO_MEM (zk_io);
         ZERO_MEM (zk_timer);
-        ZERO_MEM (zk_read_timer);
         is_closed = false;
     }
 private:
@@ -851,7 +822,6 @@ private:
     const char *clientIdFile;
     ev_io zk_io;
     ev_timer zk_timer;
-    ev_timer zk_read_timer;
     int fd;
     int interest;
     timeval tv;
