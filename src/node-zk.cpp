@@ -936,34 +936,34 @@ public:
         ZooKeeper *zk = ObjectWrap::Unwrap<ZooKeeper>(info.This());
         assert(zk);
         assert(zk->handle_ == info.This());
-        return Integer::New (zk->zhandle != 0 ? zoo_state(zk->zhandle) : 0);
+        return scope.Close(Integer::New (zk->zhandle != 0 ? zoo_state(zk->zhandle) : 0));
     }
 
     static Handle<Value> ClientidPropertyGetter (Local<String> property, const AccessorInfo& info) {
         HandleScope scope;
         ZooKeeper *zk = ObjectWrap::Unwrap<ZooKeeper>(info.This());
         assert(zk);
-        return zk->idAsString(zk->zhandle != 0 ? zoo_client_id(zk->zhandle)->client_id : zk->myid.client_id);
+        return scope.Close(zk->idAsString(zk->zhandle != 0 ? zoo_client_id(zk->zhandle)->client_id : zk->myid.client_id));
     }
     static Handle<Value> ClientPasswordPropertyGetter (Local<String> property, const AccessorInfo& info) {
         HandleScope scope;
         ZooKeeper *zk = ObjectWrap::Unwrap<ZooKeeper>(info.This());
         assert(zk);
-        return zk->PasswordToHexString(zk->zhandle != 0 ? zoo_client_id(zk->zhandle)->passwd : zk->myid.passwd);
+        return scope.Close(zk->PasswordToHexString(zk->zhandle != 0 ? zoo_client_id(zk->zhandle)->passwd : zk->myid.passwd));
     }
 
     static Handle<Value> SessionTimeoutPropertyGetter (Local<String> property, const AccessorInfo& info) {
         HandleScope scope;
         ZooKeeper *zk = ObjectWrap::Unwrap<ZooKeeper>(info.This());
         assert(zk);
-        return Integer::New (zk->zhandle != 0 ? zoo_recv_timeout(zk->zhandle) : -1);
+        return scope.Close(Integer::New (zk->zhandle != 0 ? zoo_recv_timeout(zk->zhandle) : -1));
     }
 
     static Handle<Value> IsUnrecoverablePropertyGetter (Local<String> property, const AccessorInfo& info) {
         HandleScope scope;
         ZooKeeper *zk = ObjectWrap::Unwrap<ZooKeeper>(info.This());
         assert(zk);
-        return Integer::New (zk->zhandle != 0 ? is_unrecoverable(zk->zhandle) : 0);
+        return scope.Close(Integer::New (zk->zhandle != 0 ? is_unrecoverable(zk->zhandle) : 0));
     }
 
     void realClose (int code) {
