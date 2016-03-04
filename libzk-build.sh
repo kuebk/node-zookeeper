@@ -18,7 +18,7 @@ fi
 --with-pic \
 --libdir=$BUILD/lib \
 --prefix=$BUILD && \
-make && \
+make -i && \
 make install
 if [ $? != 0 ] ; then
     echo "Unable to build zookeeper library"
